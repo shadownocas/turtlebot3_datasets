@@ -1,10 +1,10 @@
 # turtlebot3_datasets
 
-This package provides helper scripts to download and use datasets for the [Introduction to Robotics class](https://guilhermelawless.github.io/introduction-robotics/).
+This package provides helper scripts to download and use datasets for the [Introduction to Robotics class](https://irob-ist.github.io/introduction-robotics/).
 
 The datasets were captured on a [Turtlebot 3 Waffle Pi](http://www.robotis.us/turtlebot-3-waffle-pi/).
 
-This guide assumes that you have followed the previous [tutorials](https://guilhermelawless.github.io/introduction-robotics/).
+This guide assumes that you have followed the previous [tutorials](https://irob-ist.github.io/introduction-robotics/).
 
 ## Dataset information
 
@@ -50,7 +50,7 @@ First, some things to know:
 
 ## Steps
 
-1. `git clone https://github.com/guilhermelawless/turtlebot3_datasets.git` into your ROS workspace
+1. `git clone https://github.com/irob-ist/turtlebot3_datasets.git` into your ROS workspace
 
 2. Build with catkin:
     `cd $ROS_WORKSPACE/../src && catkin_make && source ~/.bashrc`
