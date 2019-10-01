@@ -50,20 +50,27 @@ First, some things to know:
 
 ## Steps
 
-1. `git clone https://github.com/irob-ist/turtlebot3_datasets.git` into your ROS workspace
+1. Install pip
+    `sudo apt get python-pip'
+    `sudo pip install --upgrade pip`
 
-2. Build with catkin:
+2. Install gdown
+    `sudo pip install gdown`
+
+3. `git clone https://github.com/irob-ist/turtlebot3_datasets.git` into your ROS workspace
+
+4. Build with catkin:
     `cd $ROS_WORKSPACE/../src && catkin_make && source ~/.bashrc`
 
-3. Download the dataset (the map is already in the `data` directory, this downloads the rosbag):
+5. Download the dataset (the map is already in the `data` directory, this downloads the rosbag):
     `roscd turtlebot3_datasets/scripts && bash download_dataset.sh`
 
-4. Run a static transform publisher to connect the ground-truth and robot frames (you can also add as a node to your launch file):
+6. Run a static transform publisher to connect the ground-truth and robot frames (you can also add as a node to your launch file):
     `rosrun turtlebot3_datasets publish_initial_tf.sh odom # other frames can be used`
 
-5. Launch the description launch file:
+7. Launch the description launch file:
     `roslaunch turtlebot3_datasets turtlebot3_description.launch`
 
-7. Launch map server and/or other algorithms...
+8. Launch map server and/or other algorithms...
 
-8. Play the bag.
+9. Play the bag.
