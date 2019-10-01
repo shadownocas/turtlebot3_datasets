@@ -51,7 +51,7 @@ First, some things to know:
 ## Steps
 
 1. Install pip
-    `sudo apt get python-pip'
+    `sudo apt get python-pip`
     `sudo pip install --upgrade pip`
 
 2. Install gdown
