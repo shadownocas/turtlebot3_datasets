@@ -1,3 +1,3 @@
 #!/bin/bash
-gdown -O `rospack find turtlebot3_datasets`/data/slam_easy.bag https://drive.google.com/uc?id=1a6csy_UKncrv7Eha5hWuWMAUSnbeJkWq
-gdown -O `rospack find turtlebot3_datasets`/data/fixed_slam_easy.bag https://drive.google.com/uc?id=186PfQ7CkX9EaTo1Sfuc9SekZ3-MX28M5
+path_to_pkg=`rospack find turtlebot3_datasets`/data
+gdown -O $path_to_pkg/ir_labs.tar.gz https://drive.google.com/uc?id=1-QdzXIoh0ltdDNGuffLqzsPZLnLwSjAj && tar -xvf $path_to_pkg/ir_labs.tar.gz -C $path_to_pkg
