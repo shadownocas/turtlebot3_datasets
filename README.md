@@ -1,14 +1,12 @@
 # turtlebot3_datasets
 
-This package provides helper scripts to download and use datasets for the [Introduction to Robotics class](https://irob-ist.github.io/introduction-robotics/).
+This package provides helper scripts to download and use datasets for the **Introduction to Robotics** labs.
 
 The datasets were captured on a [Turtlebot 3 Waffle Pi](http://www.robotis.us/turtlebot-3-waffle-pi/).
 
-This guide assumes that you have followed the previous [tutorials](https://irob-ist.github.io/introduction-robotics/).
-
 ## Dataset information
 
-A map and rosbag are provided, along with some helper scripts.
+A map and rosbag are provided along with some helper scripts.
 
 The initial bag is still provided, but had a synchronization issue. This has been fixed using [fix_stamps.py](scripts/fix_stamps.py).
 
@@ -26,7 +24,7 @@ topics:      /imu                              14805 msgs    : sensor_msgs/Imu
              /tf_static                            1 msg     : tf/tfMessage
 ```
 
-The setup includes ground-truth data. This was obtained from a [motion capture system](http://welcome.isr.tecnico.ulisboa.pt/isrobonet/) at 60Hz. 5 markers were placed on the top layer of the robot, such that the center of the tracked object matched the laser scanner of the robot.
+The setup includes ground-truth data. This was obtained from a [motion capture system](http://welcome.isr.tecnico.ulisboa.pt/isrobonet/) at 60Hz. Five markers were placed on the top layer of the robot, such that the center of the tracked object matched the laser scanner of the robot.
 
 The ground-truth data is provided in the `/tf` topic, as a transform `mocap -> mocap_laser_link`. To conform to [REP 105](http://www.ros.org/reps/rep-0105.html) in ROS, the initial transform was obtained at the robot's base footprint frame. The homogeneous transformation matrix at the beginning of the dataset is given by:
 
@@ -47,6 +45,8 @@ First, some things to know:
 
 - Always play back the rosbag with the `--clock` option (related to simulation time). `--pause` and `--r RATE` can also help.
 
+- Check for more information on the [rosbag](http://wiki.ros.org/rosbag/Commandline) command-line tool if necessary.
+
 
 ## Steps
 
@@ -57,7 +57,7 @@ First, some things to know:
 2. Install gdown
     `sudo pip install gdown`
 
-3. `git clone https://github.com/irob-ist/turtlebot3_datasets.git` into your ROS workspace
+3. `git clone https://github.com/irob-ist/turtlebot3_datasets.git` into the **src** directory of your ROS workspace
 
 4. Build with catkin:
     `cd $ROS_WORKSPACE/../src && catkin_make && source ~/.bashrc`
@@ -65,12 +65,10 @@ First, some things to know:
 5. Download the dataset (the map is already in the `data` directory, this downloads the rosbag):
     `roscd turtlebot3_datasets/scripts && bash download_dataset.sh`
 
-6. Run a static transform publisher to connect the ground-truth and robot frames (you can also add as a node to your launch file):
+6. Run a static transform publisher to connect the ground-truth and robot frames (you can also add as a node to [publish_initial_tf.sh](launch/turtlebot3_playbag.launch)):
     `rosrun turtlebot3_datasets publish_initial_tf.sh odom # other frames can be used`
 
-7. Launch the description launch file:
-    `roslaunch turtlebot3_datasets turtlebot3_description.launch`
+7. Launch [publish_initial_tf.sh](launch/turtlebot3_playbag.launch) to play the bag:
+    `roslaunch turtlebot3_datasets turtlebot3_playbag.launch`
 
 8. Launch map server and/or other algorithms...
-
-9. Play the bag.
