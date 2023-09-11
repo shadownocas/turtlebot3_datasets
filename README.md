@@ -65,10 +65,10 @@ First, some things to know:
 5. Download the dataset (the map is already in the `data` directory, this downloads the rosbag):
     `roscd turtlebot3_datasets/scripts && bash download_dataset.sh`
 
-6. Run a static transform publisher to connect the ground-truth and robot frames (you can also add as a node to [publish_initial_tf.sh](launch/turtlebot3_playbag.launch)):
+6. Run a static transform publisher to connect the ground-truth and robot frames (you can also add as a node to [turtlebot3_playbag.launch](launch/turtlebot3_playbag.launch)):
     `rosrun turtlebot3_datasets publish_initial_tf.sh odom # other frames can be used`
 
-7. Launch [publish_initial_tf.sh](launch/turtlebot3_playbag.launch) to play the bag:
+7. Launch [turtlebot3_playbag.launch](launch/turtlebot3_playbag.launch) to play the bag:
     `roslaunch turtlebot3_datasets turtlebot3_playbag.launch`
 
 8. Launch map server and/or other algorithms...
