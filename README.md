@@ -57,7 +57,7 @@ First, some things to know:
 2. Install gdown
     `sudo pip install gdown`
 
-3. `git clone https://github.com/irob-ist/turtlebot3_datasets.git` into the **src** directory of your ROS workspace
+3. `git clone https://github.com/irob-labs-ist/turtlebot3_datasets.git` into the **src** directory of your ROS workspace
 
 4. Build with catkin:
     `cd $ROS_WORKSPACE/../src && catkin_make && source ~/.bashrc`
