@@ -9,18 +9,27 @@
   </include>
 
   <!-- Map server -->
-
+  <node name="map_server" pkg="map_server" type="map_server" args="/home/acsdc/Desktop/12092025/intro_robotics/src/turtlebot3_datasets/data/map.yaml"/>
   <!-- TF -->
   
   <!-- ROSBAG -->
   <param name="/use_sim_time" value="true"/>
   <node pkg="rosbag" type="play" name="rosbag_player" 
-          args="--clock $(find turtlebot3_datasets)/data/$(arg bag_name).bag"/>
+          args="--clock $(find turtlebot3_datasets)/data/irob_bags/$(arg bag_name).bag"/>
 
   <!-- EKF robot localisation -->
 
   <!-- AMCL-->
-
+  <node pkg="amcl" type="amcl" name="amcl">
+  <param name="min_particles" value="5000"/>
+<param name="max_particles" value="10000"/>
+  <param name="initial_pose_x" value="nan"/>
+  <param name="initial_pose_y" value="nan"/>
+  <param name="initial_pose_z" value="nan"/>
+<param name="update_min_d" value="0.2"/>
+  <param name="update_min_a" value="0.1"/>
+  <param name="resample_interval" value="2"/>
+  </node>
   <!-- Groundtruth path -->
 
   <!-- Estimated path -->
