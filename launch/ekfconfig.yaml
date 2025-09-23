@@ -1,30 +1,26 @@
-#Configuation for robot odometry EKF
+#Configuation for robot odometry EKF -- Now your EKF will fuse: odom at full frequency, imu at full frequency, groundtruth_1hz at 1 Hz.
 frequency: 30
 odom0_nodelay: true
 imu0_nodelay: true
 
-sensor_timeout: 0.1
+sensor_timeout: 10
 two_d_mode: true
 transform_time_offset: 0.0
 transform_timeout: 0.0
 print_diagnostics: true
 debug: false
-base_link_frame: base_footprint
-
 
 map_frame: map
 odom_frame: odom
-#base_link_frame: base_link
-world_frame: odom
+base_link_frame: base_footprint
+world_frame: map
 publish_tf: true
 
-# Ground-truth (from tf)
-gps0: /groundtruth_1hz
+gps0: /groundtruth_path
 gps0_config: [true, true, false,
               false, false, true,
               false, false, false]
 gps0_queue_size: 10
-
 
 # -------------------------------------
 # Wheel odometry:
@@ -57,21 +53,21 @@ imu0_remove_gravitational_acceleration: true
 
 use_control: false
 
-process_noise_covariance: [0.05, 0,    0,    0,    0,    0,    0,     0,     0,    0,    0,    0,    0,    0,    0,
-                                              0,    0.05, 0,    0,    0,    0,    0,     0,     0,    0,    0,    0,    0,    0,    0,
-                                              0,    0,    0.06, 0,    0,    0,    0,     0,     0,    0,    0,    0,    0,    0,    0,
-                                              0,    0,    0,    0.03, 0,    0,    0,     0,     0,    0,    0,    0,    0,    0,    0,
-                                              0,    0,    0,    0,    0.03, 0,    0,     0,     0,    0,    0,    0,    0,    0,    0,
-                                              0,    0,    0,    0,    0,    0.06, 0,     0,     0,    0,    0,    0,    0,    0,    0,
-                                              0,    0,    0,    0,    0,    0,    0.025, 0,     0,    0,    0,    0,    0,    0,    0,
-                                              0,    0,    0,    0,    0,    0,    0,     0.025, 0,    0,    0,    0,    0,    0,    0,
-                                              0,    0,    0,    0,    0,    0,    0,     0,     0.04, 0,    0,    0,    0,    0,    0,
-                                              0,    0,    0,    0,    0,    0,    0,     0,     0,    0.01, 0,    0,    0,    0,    0,
-                                              0,    0,    0,    0,    0,    0,    0,     0,     0,    0,    0.01, 0,    0,    0,    0,
-                                              0,    0,    0,    0,    0,    0,    0,     0,     0,    0,    0,    0.02, 0,    0,    0,
-                                              0,    0,    0,    0,    0,    0,    0,     0,     0,    0,    0,    0,    0.01, 0,    0,
-                                              0,    0,    0,    0,    0,    0,    0,     0,     0,    0,    0,    0,    0,    0.01, 0,
-                                              0,    0,    0,    0,    0,    0,    0,     0,     0,    0,    0,    0,    0,    0,    0.015]
+process_noise_covariance: [10, 0,    0,    0,    0,    0,    0,     0,     0,    0,    0,    0,    0,    0,    0,
+                                              0,    10, 0,    0,    0,    0,    0,     0,     0,    0,    0,    0,    0,    0,    0,
+                                              0,    0,    10, 0,    0,    0,    0,     0,     0,    0,    0,    0,    0,    0,    0,
+                                              0,    0,    0,    10, 0,    0,    0,     0,     0,    0,    0,    0,    0,    0,    0,
+                                              0,    0,    0,    0,    10, 0,    0,     0,     0,    0,    0,    0,    0,    0,    0,
+                                              0,    0,    0,    0,    0,  10, 0,     0,     0,    0,    0,    0,    0,    0,    0,
+                                              0,    0,    0,    0,    0,    0,   10, 0,     0,    0,    0,    0,    0,    0,    0,
+                                              0,    0,    0,    0,    0,    0,    0,     10, 0,    0,    0,    0,    0,    0,    0,
+                                              0,    0,    0,    0,    0,    0,    0,     0,     10, 0,    0,    0,    0,    0,    0,
+                                              0,    0,    0,    0,    0,    0,    0,     0,     0,    10, 0,    0,    0,    0,    0,
+                                              0,    0,    0,    0,    0,    0,    0,     0,     0,    0,    10, 0,    0,    0,    0,
+                                              0,    0,    0,    0,    0,    0,    0,     0,     0,    0,    0,    10, 0,    0,    0,
+                                              0,    0,    0,    0,    0,    0,    0,     0,     0,    0,    0,    0,    10, 0,    0,
+                                              0,    0,    0,    0,    0,    0,    0,     0,     0,    0,    0,    0,    0,    10, 0,
+                                              0,    0,    0,    0,    0,    0,    0,     0,     0,    0,    0,    0,    0,    0,    10]
 
 
 initial_estimate_covariance: [1e-9, 0,    0,    0,    0,    0,    0,    0,    0,    0,     0,     0,     0,    0,    0,

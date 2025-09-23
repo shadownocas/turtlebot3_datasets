@@ -1,5 +1,4 @@
-#!/usr/bin/env python2.7
-
+#!/usr/bin/env python3
 import rospy
 import rosbag
 import sys
@@ -7,6 +6,12 @@ import argparse
 import numpy
 from tf2_ros import Buffer, TransformListener
 from rosgraph_msgs.msg import Clock
+import csv
+
+# Parameters
+csv_file = rospy.get_param('~csv_file', '/home/ines/robotica/intro_robotics/src/turtlebot3_datasets/data/ekf3_error.csv') 
+est_frame = rospy.get_param('~est_frame', 'base_footprint')
+gt_frame = rospy.get_param('~gt_frame', 'mocap_laser_link')
 
 class TransformHandler():
 
@@ -41,14 +46,14 @@ def get_errors(transform):
     return numpy.linalg.norm( [tr.x, tr.y] )
 
 
-parser = argparse.ArgumentParser()
+""" parser = argparse.ArgumentParser()
 parser.add_argument('--gt_frame', help='The child frame of the GT transform', default='mocap_laser_link')
 parser.add_argument('--est_frame', help='The child frame of the estimation transform', default='base_scan')
 
 args = parser.parse_args()
 
 gt_frame = args.gt_frame
-est_frame = args.est_frame
+est_frame = args.est_frame """
 
 rospy.init_node('evaluation_node')
 
@@ -71,6 +76,10 @@ try:
             rospy.logwarn(e)
         else:
             eucl = get_errors(t)
+            time_sec = t.header.stamp.to_sec()
+            with open(csv_file, 'a', newline='') as f:
+                writer = csv.writer(f)
+                writer.writerow([time_sec, format(eucl * 1e3)])
             rospy.loginfo('Error (in mm): {:.2f}'.format(eucl * 1e3))
 
         try:

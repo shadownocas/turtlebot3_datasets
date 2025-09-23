@@ -1,77 +1,44 @@
 #!/usr/bin/env python3
 import rospy
-import csv
-import os
-from nav_msgs.msg import Path, Odometry
+import tf2_ros
+from nav_msgs.msg import Path
 from geometry_msgs.msg import PoseStamped
 
-# -----------------------
-# Parameters
-csv_dir = '/home/ines/robotica/intro_robotics/src/turtlebot3_datasets/data'
-csv_file = os.path.join(csv_dir, 'groundtruth_1hz.csv')
-frame_id = 'odom'
+class TFPathRecorder:
+    def __init__(self):
+        rospy.init_node("publish_groundtruth_path", anonymous=True)
 
-# Ensure data directory exists
-os.makedirs(csv_dir, exist_ok=True)
+        # tf groundtruth 
 
-# Create CSV file with header if missing
-if not os.path.isfile(csv_file):
-    rospy.loginfo(f"CSV file not found. Creating: {csv_file}")
-    with open(csv_file, 'w', newline='') as f:
-        writer = csv.writer(f)
-        writer.writerow(['time', 'x', 'y', 'z', 'qx', 'qy', 'qz', 'qw'])
+        self.path = Path() # Actually store the path here
+        self.path.header.frame_id = "map"
+        self.pub = rospy.Publisher('/groundtruth_path', Path, queue_size=10)
+        
+        # TF setup
+        self.tf_buffer = tf2_ros.Buffer()
+        self.tf_listener = tf2_ros.TransformListener(self.tf_buffer)
 
-# Open CSV for appending
-csv_fh = open(csv_file, 'a', newline='')
-writer = csv.writer(csv_fh)
+        # Timer to record path (downsampled to 1Hz)
+        self.timer = rospy.Timer(rospy.Duration(0.1), self.record_tf_path)  # Changed from 0.1 to 1.0
 
-# -----------------------
-# ROS node and publishers
-rospy.init_node('groundtruth_path_publisher')
-path_pub = rospy.Publisher('/groundtruth_path', Path, queue_size=10)
-path = Path()
-path.header.frame_id = frame_id
+    def record_tf_path(self, event):
+        try:
+            trans = self.tf_buffer.lookup_transform("map" , "mocap_laser_link", rospy.Time())
+            
+            pose = PoseStamped()
+            pose.header.stamp = rospy.Time.now()
+            pose.pose.position.x = trans.transform.translation.x
+            pose.pose.position.y = trans.transform.translation.y
+            pose.pose.position.z = 0.0
+            pose.pose.orientation = trans.transform.rotation
+            
+            self.path.header.stamp = rospy.Time.now()
+            self.path.poses.append(pose)
+            self.pub.publish(self.path)
+            
+        except Exception as e:
+            rospy.logwarn_throttle(5, "TF lookup failed: %s", str(e))
 
-# -----------------------
-# Global variable to store latest odometry
-latest_odom = None
-
-def odom_callback(msg):
-    global latest_odom
-    latest_odom = msg
-
-rospy.Subscriber("/odom", Odometry, odom_callback)
-
-# -----------------------
-# Main loop at 1 Hz
-rate = rospy.Rate(1)  # 1 Hz
-rospy.loginfo("Publishing ground-truth path at 1 Hz...")
-
-while not rospy.is_shutdown():
-    if latest_odom is not None:
-        odom = latest_odom
-        pose = odom.pose.pose
-        stamp = odom.header.stamp
-
-        # Write to CSV
-        writer.writerow([
-            stamp.to_sec(),
-            pose.position.x,
-            pose.position.y,
-            pose.position.z,
-            pose.orientation.x,
-            pose.orientation.y,
-            pose.orientation.z,
-            pose.orientation.w
-        ])
-        csv_fh.flush()
-
-        # Append to Path and publish
-        pose_stamped = PoseStamped()
-        pose_stamped.header.frame_id = frame_id
-        pose_stamped.header.stamp = stamp
-        pose_stamped.pose = pose
-        path.poses.append(pose_stamped)
-        path_pub.publish(path)
-
-    rate.sleep()
+if __name__ == "__main__":
+    TFPathRecorder()
+    rospy.spin()
