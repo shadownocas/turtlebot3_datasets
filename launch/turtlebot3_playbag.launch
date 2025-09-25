@@ -1,51 +1,105 @@
 <launch>
+  <!-- Arguments -->
   <arg name="model" default="waffle_pi"/>
-  <arg name="bag_path" default="/home/ines/robotica/intro_robotics/src/turtlebot3_datasets/data/fixed_slam_easy.bag"/>
-  <arg name="ekf_config" default="/home/ines/robotica/intro_robotics/src/turtlebot3_datasets/launch/ekfconfig.yaml"/>
-
-  <!-- Use simulated time -->
+  <arg name="bag_name" default="fixed_slam_easy"/>
   <param name="/use_sim_time" value="true"/>
 
-  <!-- Turtlebot3 nodes if needed -->
+  <!-- Turtlebot3 -->
   <include file="$(find turtlebot3_bringup)/launch/turtlebot3_remote.launch">
-    <arg name="model" value="$(arg model)"/>
+    <arg name="model" value="$(arg model)" />
   </include>
 
   <!-- Map server -->
-  <node pkg="map_server" type="map_server" name="map_server"
-        args="/home/ines/robotica/intro_robotics/src/turtlebot3_datasets/data/map.yaml"/>
+  <node pkg="map_server" type="map_server" name="map_server" 
+    args="/home/ines/robotica/intro_robotics/src/turtlebot3_datasets/data/map.yaml"
+  />
 
-  <!-- Publish ground truth path -->
-  <node pkg="turtlebot3_datasets" type="publish_groundtruth_path.py" name="publish_groundtruth_path" output="screen"/>
-
-  <!-- Publish EKF path -->
-  <node pkg="turtlebot3_datasets" type="estimated_path.py" name="estimated_path" output="screen"/>
-
-<node pkg="tf2_ros" type="static_transform_publisher" name="mocap_to_map" 
+  <!-- TF -->
+  <!-- Static TF: connect odom to base_footprint -->
+  <node pkg="tf2_ros" type="static_transform_publisher" name="mocap_to_map" 
     args="0.935 1.34 -0.023 0.001 -0.003 0.737 0.676 mocap map"
   />
 
-  <!-- Map → odom -->
-  <node pkg="tf2_ros" type="static_transform_publisher" name="map_to_odom"
-        args="0 0 0 0 0 0 map odom"/>
+  <node pkg="tf2_ros" type="static_transform_publisher" name="mocap_to_imu" 
+    args="0.935 1.34 -0.023 0.001 -0.003 0.737 0.676 mocap imu"
+  />
 
+  <node pkg="tf2_ros" type="static_transform_publisher" name="mocap_to_odom" 
+    args="0.935 1.34 -0.023 0.001 -0.003 0.737 0.676 mocap odom"
+  />
+  
+  <!-- ROSBAG -->
+  <node pkg="rosbag" type="play" name="rosbag_player" 
+      args="--clock /home/ines/robotica/intro_robotics/src/turtlebot3_datasets/data/fixed_slam_easy.bag"
+  />
 
-  <!-- EKF node -->
+  <!-- EKF Localisation Node -->
   <node pkg="robot_localization" type="ekf_localization_node" name="ekf_localization_local">
-    <rosparam command="load" file="$(arg ekf_config)" />
+    <rosparam command="load" file="/home/ines/robotica/intro_robotics/src/turtlebot3_datasets/launch/ekfconfig.yaml"/>
   </node>
 
+  <!-- AMCL-->
+    <!--node pkg="amcl" type="amcl" name="amcl">
 
-  <!-- Play bag -->
-  <node pkg="rosbag" type="play" name="rosbag_player"
-        args="--clock $(arg bag_path)" />
+  <param name="initial_pose_x" value="nan"/>
+  <param name="initial_pose_y" value="nan"/>
+  <param name="initial_pose_z" value="nan"/>
+<param name="update_min_d" value="0.2"/>
+  <param name="update_min_a" value="0.1"/>
+  <param name="resample_interval" value="2"/>
+  <param name="laser_frame_id" value="base_scan"/>
+  </node-->
+  <!-- AMCL tuned for bag playback -->
+<!-- <node pkg="amcl" type="amcl" name="amcl" output="screen">
+    <param name="resample_interval" value="2"/>
+    <param name="initial_pose_x" value="0.0"/>
+    <param name="initial_pose_y" value="0.0"/>
+    <param name="initial_pose_a" value="0.0"/>
+    <param name="initial_cov_xx" value="0.9"/>
+<param name="initial_cov_yy" value="0.9"/>
+<param name="initial_cov_aa" value="0.9"/>
+    <param name="update_min_d" value="0.05"/> 
+    <param name="update_min_a" value="0.02"/>
+    <param name="laser_z_hit" value="0.5"/>
+    <param name="laser_z_rand" value="0.5"/>
+    <param name="laser_sigma_hit" value="0.4"/>
+    <param name="laser_max_range" value="3.5"/>
+    
+    <param name="laser_frame_id" value="base_scan"/>
+</node> -->
+
+  <!-- Groundtruth path -->
+  <node pkg="turtlebot3_datasets" type="publish_groundtruth_path.py" name="publish_groundtruth_path" output="screen">
+  </node>
+
+  <!-- Mocap aligner: creates mocap_aligned frame -->
+  <node pkg="turtlebot3_datasets" type="mocap_aligner.py" name="mocap_aligner" output="screen"/>
+
+
+  <!-- Estimated path -->
+  <node pkg="turtlebot3_datasets" type="estimated_path.py" name="estimated_path" output="screen">
+  </node>
+
+<node pkg="turtlebot3_datasets" type="publish_groundtruth_pose.py" name="publish_groundtruth_pose" output="screen">
+  </node>
+  <!-- <node pkg="turtlebot3_datasets" type="amcl_path.py" name="amcl_path" output="screen"/>
+
+  <node pkg="turtlebot3_datasets" type="amcl_error_calc.py" name="path_error" output="screen"/> -->
+
 
   <!-- EKF error logger -->
-  <!--node pkg="turtlebot3_datasets" type="calculate_error.py" name="calculate_error" output="screen">
-    <param name="groundtruth_topic" value="/groundtruth_path"/>
-    <param name="estimated_topic" value="/estimated_path"/>
+  <node pkg="turtlebot3_datasets" type="calculate_error.py" name="calculate_error" output="screen">
+    <param name="gt_frame" value="mocap_laser_link"/>
+    <param name="est_frame" value="mocap_aligner"/>
+  </node>
+
+  <!--node pkg="turtlebot3_datasets" type="calculate_errors_1hz.py" name="error_calculator" output="screen">
+    <param name="gt_topic" value="/groundtruth_path"/>    
+    <param name="ekf_topic" value="/odometry/filtered"/>   
+    <param name="csv_file" value="$(arg csv_file)"/>  
   </node-->
 
-  <!-- RViz -->
+  <!-- rviz -->
   <node pkg="rviz" type="rviz" name="rviz" required="true"/>
+
 </launch>

@@ -1,61 +1,91 @@
 #!/usr/bin/env python3
 import rospy
-from nav_msgs.msg import Path
+import rosbag
+import sys
+import argparse
+import numpy
+from tf2_ros import Buffer, TransformListener
+from rosgraph_msgs.msg import Clock
 import csv
-import numpy as np
-import os
 
 # Parameters
 csv_file = rospy.get_param('~csv_file', '/home/ines/robotica/intro_robotics/src/turtlebot3_datasets/data/ekf3_error.csv') 
-groundtruth_topic = rospy.get_param('~groundtruth_topic', '/groundtruth_path')
-estimated_topic   = rospy.get_param('~estimated_topic', '/estimated_path')
+est_frame = rospy.get_param('~est_frame', 'base_link')
+gt_frame = rospy.get_param('~gt_frame', 'mocap_laser_link')
 
-gt_poses = []
-est_poses = []
+class TransformHandler():
 
-# Ensure CSV exists and write header
-if not os.path.exists(csv_file):
-    with open(csv_file, 'w', newline='') as f:
-        writer = csv.writer(f)
-        writer.writerow(['time', 'error_mm'])
+    def __init__(self, gt_frame, est_frame, max_time_between=0.01):
+        self.gt_frame = gt_frame
+        self.est_frame = est_frame
+        self.frames = [gt_frame, est_frame]
 
-def groundtruth_cb(msg):
-    global gt_poses
-    gt_poses = msg.poses
+        self.tf_buffer = Buffer(cache_time=rospy.Duration(max_time_between))
+        self.__tf_listener = TransformListener(self.tf_buffer)
 
-def estimated_cb(msg):
-    global est_poses
-    est_poses = msg.poses
+        #self.warn_timer = rospy.Timer(rospy.Duration(5), self.__warn_timer_cb)
 
-def compute_errors(event=None):
-    """Compute error for all available poses and append to CSV."""
-    N = min(len(gt_poses), len(est_poses))
-    if N == 0:
-        return  # No poses yet
+    def __warn_timer_cb(self, evt):
 
-    with open(csv_file, 'a', newline='') as f:
-        writer = csv.writer(f)
-        # Compute only for new poses (avoid duplicates)
-        start_index = getattr(compute_errors, 'last_index', 0)
-        for i in range(start_index, N):
-            gt = gt_poses[i].pose.position
-            est = est_poses[i].pose.position
-            dx = est.x - gt.x
-            dy = est.y - gt.y
-            error = np.sqrt(dx**2 + dy**2)
-            time_sec = gt_poses[i].header.stamp.to_sec()
-            writer.writerow([time_sec, error * 1000])  # convert to mm
-            rospy.loginfo('t={:.2f}, error={:.2f} mm'.format(time_sec, error*1000))
-        compute_errors.last_index = N  # remember last processed index
+        available_frames = self.tf_buffer.all_frames_as_string()
+        avail = True
+        for frame in self.frames:
+            if frame not in available_frames:
+                rospy.logwarn('Frame {} has not been seen yet'.format(frame))
+                avail = False
+        if avail:
+            self.warn_timer.shutdown()
 
-if __name__ == "__main__":
-    rospy.init_node('calculate_error')
+    def get_transform(self, fixed_frame, target_frame):
+        # caller should handle the exceptions
+        return self.tf_buffer.lookup_transform(target_frame, fixed_frame, rospy.Time(0))
 
-    rospy.Subscriber(groundtruth_topic, Path, groundtruth_cb)
-    rospy.Subscriber(estimated_topic, Path, estimated_cb)
 
-    # Timer to compute errors every 0.5s
-    rospy.Timer(rospy.Duration(0.5), compute_errors)
+def get_errors(transform):
+    tr = transform.transform.translation
+    return numpy.linalg.norm( [tr.x, tr.y] )
 
-    rospy.loginfo("Calculate_error node started. Computing errors continuously...")
-    rospy.spin()
+
+""" parser = argparse.ArgumentParser()
+parser.add_argument('--gt_frame', help='The child frame of the GT transform', default='mocap_laser_link')
+parser.add_argument('--est_frame', help='The child frame of the estimation transform', default='base_scan')
+
+args = parser.parse_args()
+
+gt_frame = args.gt_frame
+est_frame = args.est_frame """
+
+rospy.init_node('evaluation_node')
+
+if rospy.rostime.is_wallclock():
+    rospy.logfatal('You should be using simulated time: rosparam set use_sim_time true')
+    sys.exit(1)
+
+rospy.loginfo('Waiting for clock')
+rospy.sleep(0.00001)
+
+handler = TransformHandler(gt_frame, est_frame, max_time_between=20) # 500ms
+
+rospy.loginfo('Listening to frames and computing error, press Ctrl-C to stop')
+sleeper = rospy.Rate(1000)
+try:
+    while not rospy.is_shutdown():
+        try:
+            t = handler.get_transform(gt_frame, est_frame)
+        except Exception as e:
+            rospy.logwarn(e)
+        else:
+            eucl = get_errors(t)
+            time_sec = t.header.stamp.to_sec()
+            with open(csv_file, 'a', newline='') as f:
+                writer = csv.writer(f)
+                writer.writerow([time_sec, format(eucl * 1e3)])
+            rospy.loginfo('Error (in mm): {:.2f}'.format(eucl * 1e3))
+
+        try:
+            sleeper.sleep()
+        except rospy.exceptions.ROSTimeMovedBackwardsException as e:
+            rospy.logwarn(e)
+
+except rospy.exceptions.ROSInterruptException:
+    pass
