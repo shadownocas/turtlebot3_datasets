@@ -1,50 +1,41 @@
-#Configuation for robot odometry EKF -- Now your EKF will fuse: odom at full frequency, imu at full frequency, groundtruth_1hz at 1 Hz.
 frequency: 30
 odom0_nodelay: true
 imu0_nodelay: true
 
 sensor_timeout: 10
-two_d_mode: true
 transform_time_offset: 0.0
 transform_timeout: 0.0
 print_diagnostics: true
 debug: false
 
+# Frames
 map_frame: map
 odom_frame: odom
-base_link_frame: base_footprint
+base_link_frame: base_footprint  # EKF estimated robot frame
 world_frame: map
-publish_tf: true
+publish_tf: true       
 
-gps0: /groundtruth_path
-gps0_config: [true, true, false,
-              false, false, true,
-              false, false, false]
-gps0_queue_size: 10
-
-# -------------------------------------
-# Wheel odometry:
-
+# Odometry
+#linear vel in X and Y and angular in Z
 odom0: /odom
 odom0_config: [false, false, false,
                false, false, false,
-               true,  true,  true,
-               false, false, false,
+               true,  true,  false,
+               false, false, true,
                false, false, false]
 odom0_queue_size: 10
 odom0_nodelay: true
 odom0_differential: false
 odom0_relative: false
 
-# Complete the imu0 configuration
-# imu configure:
-
-imu0: /imu
+# IMU
+imu0: /imu/data
 imu0_config: [false, false, false,
-              true,  true,  false,
+              false,  false,  false,
               false, false, false,
-              true,  true,  true,
-              true,  true,  true]
+              false,  false,  true,
+              true,  false,  false]
+
 imu0_nodelay: false
 imu0_differential: false
 imu0_relative: false
@@ -53,35 +44,19 @@ imu0_remove_gravitational_acceleration: true
 
 use_control: false
 
-process_noise_covariance: [10, 0,    0,    0,    0,    0,    0,     0,     0,    0,    0,    0,    0,    0,    0,
-                                              0,    10, 0,    0,    0,    0,    0,     0,     0,    0,    0,    0,    0,    0,    0,
-                                              0,    0,    10, 0,    0,    0,    0,     0,     0,    0,    0,    0,    0,    0,    0,
-                                              0,    0,    0,    10, 0,    0,    0,     0,     0,    0,    0,    0,    0,    0,    0,
-                                              0,    0,    0,    0,    10, 0,    0,     0,     0,    0,    0,    0,    0,    0,    0,
-                                              0,    0,    0,    0,    0,  10, 0,     0,     0,    0,    0,    0,    0,    0,    0,
-                                              0,    0,    0,    0,    0,    0,   10, 0,     0,    0,    0,    0,    0,    0,    0,
-                                              0,    0,    0,    0,    0,    0,    0,     10, 0,    0,    0,    0,    0,    0,    0,
-                                              0,    0,    0,    0,    0,    0,    0,     0,     10, 0,    0,    0,    0,    0,    0,
-                                              0,    0,    0,    0,    0,    0,    0,     0,     0,    10, 0,    0,    0,    0,    0,
-                                              0,    0,    0,    0,    0,    0,    0,     0,     0,    0,    10, 0,    0,    0,    0,
-                                              0,    0,    0,    0,    0,    0,    0,     0,     0,    0,    0,    10, 0,    0,    0,
-                                              0,    0,    0,    0,    0,    0,    0,     0,     0,    0,    0,    0,    10, 0,    0,
-                                              0,    0,    0,    0,    0,    0,    0,     0,     0,    0,    0,    0,    0,    10, 0,
-                                              0,    0,    0,    0,    0,    0,    0,     0,     0,    0,    0,    0,    0,    0,    10]
-
-
-initial_estimate_covariance: [1e-9, 0,    0,    0,    0,    0,    0,    0,    0,    0,     0,     0,     0,    0,    0,
-                                                      0,    1e-9, 0,    0,    0,    0,    0,    0,    0,    0,     0,     0,     0,    0,    0,
-                                                      0,    0,    1e-9, 0,    0,    0,    0,    0,    0,    0,     0,     0,     0,    0,    0,
-                                                      0,    0,    0,    1e-9, 0,    0,    0,    0,    0,    0,     0,     0,     0,    0,    0,
-                                                      0,    0,    0,    0,    1e-9, 0,    0,    0,    0,    0,     0,     0,     0,    0,    0,
-                                                      0,    0,    0,    0,    0,    1e-9, 0,    0,    0,    0,     0,     0,     0,    0,    0,
-                                                      0,    0,    0,    0,    0,    0,    1e-9, 0,    0,    0,     0,     0,     0,    0,    0,
-                                                      0,    0,    0,    0,    0,    0,    0,    1e-9, 0,    0,     0,     0,     0,    0,    0,
-                                                      0,    0,    0,    0,    0,    0,    0,    0,    1e-9, 0,     0,     0,     0,    0,    0,
-                                                      0,    0,    0,    0,    0,    0,    0,    0,    0,    1e-9,  0,     0,     0,    0,    0,
-                                                      0,    0,    0,    0,    0,    0,    0,    0,    0,    0,     1e-9,  0,     0,    0,    0,
-                                                      0,    0,    0,    0,    0,    0,    0,    0,    0,    0,     0,     1e-9,  0,    0,    0,
-                                                      0,    0,    0,    0,    0,    0,    0,    0,    0,    0,     0,     0,     1e-9, 0,    0,
-                                                      0,    0,    0,    0,    0,    0,    0,    0,    0,    0,     0,     0,     0,    1e-9, 0,
-                                                      0,    0,    0,    0,    0,    0,    0,    0,    0,    0,     0,     0,     0,    0,    1e-9]
+# Process noise (you can keep your previous 15x15 values)
+process_noise_covariance: [10, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                           0, 10, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                           0, 0, 10, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                           0, 0, 0, 10, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                           0, 0, 0, 0, 10, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                           0, 0, 0, 0, 0, 10, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                           0, 0, 0, 0, 0, 0, 10, 0, 0, 0, 0, 0, 0, 0, 0,
+                           0, 0, 0, 0, 0, 0, 0, 10, 0, 0, 0, 0, 0, 0, 0,
+                           0, 0, 0, 0, 0, 0, 0, 0, 10, 0, 0, 0, 0, 0, 0,
+                           0, 0, 0, 0, 0, 0, 0, 0, 0, 10, 0, 0, 0, 0, 0,
+                           0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 10, 0, 0, 0, 0,
+                           0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 10, 0, 0, 0,
+                           0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 10, 0, 0,
+                           0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 10, 0,
+                           0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 10]
