@@ -32,7 +32,7 @@ class GroundtruthPath:
                 pose.header.frame_id = "map"
                 pose.pose.position.x = trans.transform.translation.x
                 pose.pose.position.y = trans.transform.translation.y
-                pose.pose.position.z = trans.transform.translation.z
+                pose.pose.position.z = 0.0
                 pose.pose.orientation = trans.transform.rotation
 
                 # Append to path
